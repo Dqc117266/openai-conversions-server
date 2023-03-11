@@ -1,0 +1,43 @@
+const Sequelize = require('sequelize');
+
+const sequelize = new Sequelize(process.env.DATABASE, process.env.DB_USER, process.env.DB_PASS, {
+  host: 'localhost',
+  port: 3306,
+  dialect: process.env.DB_DIALECT
+});
+
+const User = sequelize.define('User', {
+  // 定义字段
+  user_id: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+    primaryKey: true
+  },
+  openid: {
+    type: Sequelize.STRING,
+    allowNull: false
+  },
+  unionid: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
+  username: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
+  avator: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
+  is_invited: {
+    type: Sequelize.BOOLEAN,
+    allowNull: false,
+  }
+}, {
+    tableName: 'User',
+    timestamps: false
+});
+
+module.exports = User;
+// // 同步数据库
+// sequelize.sync();
