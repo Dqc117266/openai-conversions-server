@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('./sequelize');
+const sequelize = require('../sequelize');
 
 // 定义模型
 const User = sequelize.define('User', {
@@ -28,7 +28,16 @@ const User = sequelize.define('User', {
   is_invited: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+  balance_amount: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false
+  },
+  balance_days: {
+    type: DataTypes.INTEGER,
+    allowNull: false
   }
+  
 }, {
   tableName: 'User',
   timestamps: false

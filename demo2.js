@@ -1,16 +1,20 @@
 const express = require('express');
 const https = require('https')
 const fs = require('fs')
-const sequelize = require('./models/user/sequelize');
+const sequelize = require('./models/sequelize');
 const usersRouter = require('./routes/user_routes');
 const openIdRouter = require('./routes/openid_routes');
+const rechargelist = require('./routes/pay/rechargelist_route');
+
 const path = require('path');
 const { request } = require('http');
+const AesCipher = require('./utils/aes_cipher');
+const cipher = new AesCipher();
 
 
 const options = {
-  key: fs.readFileSync('/etc/ssl/server.key'),
-  cert: fs.readFileSync('/etc/ssl/server.crt')
+  key: fs.readFileSync(process.env.SERVER_KEY),
+  cert: fs.readFileSync(process.env.SERVER_LCT)
 }
 
 const app = express();
@@ -21,6 +25,7 @@ app.use(express.json());
 // 注册路由
 app.use('/users', usersRouter);
 app.use('/users', openIdRouter);
+app.use('/', rechargelist);
 
 // 同步模型到数据库
 sequelize.sync().then(() => {
@@ -30,7 +35,6 @@ sequelize.sync().then(() => {
 });
 
 const server = https.createServer(options, app);
-
 
 // 启动应用程序
 const PORT = process.env.PORT;

@@ -1,51 +1,35 @@
 const request = require('request');
 const User = require('../../models/user/usermodel'); // 引入用户模型
 const IdGenerator = require('../../utils/snowflake_util');
+const AesCipher = require('../../utils/aes_cipher')
+const aesCipher = new AesCipher();
+const {getOpenId} = require('../../utils/get_openid_util');
 
 const idGenerator = new IdGenerator(1, 1);
-
-
-// 通过微信接口获取用户 openid
-function getOpenId(code) {
-  return new Promise((resolve, reject) => {
-    const appid = process.env.APP_ID;
-    const secret = process.env.APP_SECRET;
-    const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${secret}&js_code=${code}&grant_type=authorization_code`;
-    request(url, (error, response, body) => {
-      if (error) {
-        reject(error);
-      } else {
-        const data = JSON.parse(body);
-        if (data.openid) {
-          resolve(data);
-        } else {
-          reject(data.errmsg);
-        }
-      }
-    });
-  });
-}
 
 // 在控制器层中处理请求，获取 openid
 async function getUserOpenId(req, res) {
   const { code } = req.body;
   try {
     const data = await getOpenId(code);
-    console.log("data " + data)
     const openid = data.openid;
     let unionid = data.unionid;
     // 将获取到的 openid 存入数据库
     const isUser = await User.findOne({ where: { openid } }); // 查询是否已存在该用户
+    console.log("data " + data + " user " + isUser)
     if (isUser) {
       try {
         const users = await User.findAll();
-        res.json(users);
-        console.log(users)
+        let aesText = aesCipher.encrypt(users[0].openid, process.env.AES_KEY);
+        users[0].openid = aesText;
+
+        res.json(users[0]);
+        console.log(users[0])
       } catch (err) {
         console.error(err);
         res.status(500).json({ message: '查询所有用户失败' });
       }
-    } else {
+    } else {//create new user
 
       try {
         const user_id = idGenerator.generate();
@@ -54,11 +38,15 @@ async function getUserOpenId(req, res) {
         const username = '微信用户';
         const avator = '';
         const is_invited = false;
+        const balance_amount = 5;
+        const balance_days = 0;
         if (typeof unionid === 'undefined') {
           unionid = null;
         }
         // const {user_id, openid, unionid, username, avator, is_invited} = req.body;
-        const user = await User.create({ user_id, openid, unionid, username, avator, is_invited});
+        let user = await User.create({ user_id, openid, unionid, username, avator, is_invited, balance_amount, balance_days});
+        let aesText = aesCipher.encrypt(user.openid, process.env.AES_KEY);
+        user.openid = aesText;
         res.json(user);
         console.log(user)
 
