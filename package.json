@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "cross-env APP_ID=wxab73b2534d535d32 APP_SECRET=bcd4c403b280eabe6fc6aaaf6cb26cc0 OPENAI_KEY=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 AES_KEY=f2de4dcbfafd8fc9 DATEBASE_NAME=conversion_database DB_USER=root DB_PASS=117266 DB_HOST=127.0.0.1 DB_PORT=3306 DB_DIALECT=mysql PORT=3000 SERVER_KEY=/etc/ssl/server.key SERVER_LCT=/etc/ssl/server.crt node demo2.js"
+    "start": "cross-env APP_ID=wxab73b2534d535d32 APP_SECRET=bcd4c403b280eabe6fc6aaaf6cb26cc0 OPENAI_KEY=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 AES_KEY=f2de4dcbfafd8fc9 DATEBASE_NAME=conversion_database DB_USER=root DB_PASS=117266 DB_HOST=127.0.0.1 DB_PORT=3306 DB_DIALECT=mysql PORT=3000 SERVER_KEY=/etc/ssl/192.168.50.224.key SERVER_LCT=/etc/ssl/192.168.50.224.crt FILEBASE_URL=http://192.168.50.224:3000/images/ node httpdemo.js"
   },
   "repository": {
     "type": "git",
@@ -23,6 +23,8 @@
     "fs": "^0.0.1-security",
     "https": "^1.0.0",
     "ioredis": "^5.3.1",
+    "moment": "^2.29.4",
+    "multer": "^1.4.5-lts.1",
     "mysql": "^2.18.1",
     "mysql2": "^3.2.0",
     "openai": "^3.2.1",

@@ -5,7 +5,7 @@ const sequelize = require('../sequelize');
 const PaymentRecord = sequelize.define('PaymentRecord', {
     payment_record_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       primaryKey: true
     },
     user_id: {
@@ -17,14 +17,15 @@ const PaymentRecord = sequelize.define('PaymentRecord', {
       allowNull: false
     },
     payment_amount: {
-      type: DataTypes.STRING,
-      allowNull: false
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true  
     },
     payment_time: {
       type: DataTypes.DATE,
-      allowNull: false
+      allowNull: false,
+      defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     }
-    
+
   }, {
     tableName: 'PaymentRecord',
     timestamps: false

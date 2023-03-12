@@ -17,8 +17,9 @@ const Conversation = sequelize.define('Conversation', {
     allowNull: false
   },
   updated_at: {
-    type: DataTypes.STRING,
-    allowNull: false
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
   },
   avator: {
     type: DataTypes.STRING,
