@@ -21,11 +21,13 @@ async function getUserOpenId(req, res) {
     if (isUser) {
       try {
         const users = await User.findAll();
-        let aesText = aesCipher.encrypt(users[0].openid, process.env.AES_KEY);
-        users[0].openid = aesText;
-
-        res.json(users[0]);
+        // let aesText = aesCipher.encrypt(users[0].openid, process.env.AES_KEY);
+        // users[0].openid = aesText;
+        res.json({user: users[0], secretKey: process.env.AES_KEY});
         console.log(users[0])
+  
+        // res.json(users[0]);
+        // console.log(users[0])
       } catch (err) {
         console.error(err);
         res.status(500).json({ message: '查询所有用户失败' });
@@ -60,9 +62,7 @@ async function createUserAndRechargeRecord(res, openid, unionid) {
         user_id, openid, unionid, username, avator, is_invited, balance_amount, balance_days
       }, {transaction: t});
 
-      let aesText = aesCipher.encrypt(user.openid, process.env.AES_KEY); //aes encrypt 加密
-      user.openid = aesText;
-      res.json(user);
+      res.json({user: user, secretKey: process.env.AES_KEY});
       console.log(user)
   
       await PaymentRecord.create({

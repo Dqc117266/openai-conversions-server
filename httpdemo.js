@@ -4,6 +4,7 @@ const sequelize = require('./models/sequelize');
 const usersRouter = require('./routes/user_routes');
 const openIdRouter = require('./routes/openid_routes');
 const rechargelist = require('./routes/pay/rechargelist_route');
+const verifySignature = require('./utils/authenticate-request-util')
 
 const path = require('path');
 const { request } = require('http');
@@ -21,8 +22,9 @@ app.use(express.static('public'));
 
 // 注册路由
 // app.use('/user', usersRouter);
+// app.use(verifySignature)
 app.use('/user', openIdRouter);
-app.use('/', rechargelist);
+app.use('/', verifySignature, rechargelist);
 
 // 同步模型到数据库
 sequelize.sync().then(() => {
