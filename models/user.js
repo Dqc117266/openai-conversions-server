@@ -4,27 +4,28 @@ class User extends Model {}
 
 User.init({
     user_id: {
-        type: Sequelize.INTEGER,
-        primaryKey: true
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        allowNull: false
       },
       openid: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: false
       },
       unionid: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: true
       },
       username: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: true
       },
       avator: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: true
       },
       is_invited: {
-        type: Sequelize.BOOLEAN,
+        type: DataTypes.BOOLEAN,
         defaultValue: false
       }    
 }, {

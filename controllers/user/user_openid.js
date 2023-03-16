@@ -20,11 +20,11 @@ async function getUserOpenId(req, res) {
     console.log("data " + data + " user " + isUser + " openid " + openid)
     if (isUser) {
       try {
-        const users = await User.findAll();
+        // const users = await User.findAll();
         // let aesText = aesCipher.encrypt(users[0].openid, process.env.AES_KEY);
         // users[0].openid = aesText;
-        res.json({user: users[0], secretKey: process.env.AES_KEY});
-        console.log(users[0])
+        res.json({user: isUser, secretKey: process.env.AES_KEY});
+        console.log(isUser)
   
         // res.json(users[0]);
         // console.log(users[0])

@@ -5,6 +5,10 @@ const usersRouter = require('./routes/user_routes');
 const openIdRouter = require('./routes/openid_routes');
 const rechargelist = require('./routes/pay/rechargelist_route');
 const verifySignature = require('./utils/authenticate-request-util')
+// const openaidome = require('./utils/openaiDemo')
+const streamDemo = require('./routes/chat/streamDemo')
+// const openaiChatbotRouter = require('./routes//chat/openaiChatbotRouter');
+
 
 const path = require('path');
 const { request } = require('http');
@@ -19,12 +23,15 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(express.static('public'));
 
+// openaidome();
 
 // 注册路由
 // app.use('/user', usersRouter);
 // app.use(verifySignature)
 app.use('/user', openIdRouter);
 app.use('/', verifySignature, rechargelist);
+// app.use('/', streamDemo);
+// app.use('/openaiChatbot', openaiChatbotRouter);
 
 // 同步模型到数据库
 sequelize.sync().then(() => {

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "cross-env APP_ID=wxab73b2534d535d32 APP_SECRET=bcd4c403b280eabe6fc6aaaf6cb26cc0 OPENAI_KEY=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 AES_KEY=f2de4dcbfafd8fc9 DATEBASE_NAME=conversion_database DB_USER=root DB_PASS=117266 DB_HOST=127.0.0.1 DB_PORT=3306 DB_DIALECT=mysql PORT=3000 SERVER_KEY=/etc/ssl/192.168.50.224.key SERVER_LCT=/etc/ssl/192.168.50.224.crt FILEBASE_URL=http://192.168.50.224:3000/images/ node httpdemo.js"
+    "start": "cross-env APP_ID=wxab73b2534d535d32 APP_SECRET=bcd4c403b280eabe6fc6aaaf6cb26cc0 OPENAI_KEY=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 AES_KEY=f2de4dcbfafd8fc9 DATEBASE_NAME=conversion_database DB_USER=root DB_PASS=123456. DB_HOST=127.0.0.1 DB_PORT=3306 DB_DIALECT=mysql PORT=3000 SERVER_KEY=/etc/ssl/192.168.50.224.key SERVER_LCT=/etc/ssl/192.168.50.224.crt FILEBASE_URL=http://192.168.50.234:3000/images/ node httpdemo.js"
   },
   "repository": {
     "type": "git",
@@ -32,7 +32,8 @@
     "redis": "^4.6.5",
     "request": "^2.88.2",
     "sequelize": "^6.29.2",
-    "snowflake-id": "^1.1.0"
+    "snowflake-id": "^1.1.0",
+    "ws": "^8.13.0"
   },
   "devDependencies": {
     "cross-env": "^7.0.3"

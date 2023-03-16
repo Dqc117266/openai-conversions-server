@@ -6,6 +6,7 @@ const PaymentRecord = sequelize.define('PaymentRecord', {
     payment_record_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      autoIncrement:true,
       primaryKey: true
     },
     user_id: {
