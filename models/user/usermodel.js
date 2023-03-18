@@ -21,7 +21,7 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true
   },
-  avator: {
+  avatar: {
     type: DataTypes.STRING,
     allowNull: true
   },

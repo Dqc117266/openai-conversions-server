@@ -6,7 +6,8 @@ const PaymentType = sequelize.define('PaymentType', {
   payment_type_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    primaryKey: true
+    primaryKey: true,
+    autoIncrement: true,
   },
   payment_type_name: {
     type: DataTypes.STRING,
@@ -19,6 +20,10 @@ const PaymentType = sequelize.define('PaymentType', {
   payment_type_content: {
     type: DataTypes.STRING,
     allowNull: false
+  }, 
+  payment_goods_detail: {
+    type: DataTypes.STRING,
+    allowNull: true
   }
   
 }, {

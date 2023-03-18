@@ -21,11 +21,15 @@ const Conversation = sequelize.define('Conversation', {
     allowNull: false,
     defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
   },
-  avator: {
+  avatar: {
     type: DataTypes.STRING,
     allowNull: false
   },
   conversation_content: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  conversation_openai_body: {
     type: DataTypes.STRING,
     allowNull: false
   }

@@ -2,8 +2,7 @@ const PaymentType = require('../../models/topay/goods_model'); // 引入用户�
 const PaymentRecord = require('../../models/topay/payment_record'); // 引入用户模型
 const User = require("../../models/user/usermodel")
 const { Sequelize } = require('sequelize');
-
-
+const sequelize = require('../../models/sequelize');
 
 async function getGoodsList(req, res) {
     try {
@@ -13,6 +12,17 @@ async function getGoodsList(req, res) {
         console.error(err);
         res.status(500).json({ message: '查询所有商品失败' });
       }
+}
+
+async function createGood(req, res) {
+  try {
+    const {payment_type_name, payment_method, payment_type_content, payment_goods_detail} = req.body;
+    const createGood = await PaymentType.create({ payment_type_name, payment_method, payment_type_content, payment_goods_detail});
+    res.json(createGood);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: '创建商品失败' });
+    }
 }
 
 async function getPaymentRecordList(req, res) {//查询所有付款记录
@@ -36,35 +46,6 @@ async function createPaymentRecord(req, res) {//创建付款记录
     res.status(500).json({ message: '创建付款记录失败' });
   }
 }
-
-// async function inviteFriends(req, res) {
-//   try {
-//     const { user_id, other_user_id } = req.body;
-//     console.log(`userId ${user_id} otherUserId ${other_user_id}`);
-
-//     if (user_id === other_user_id) {
-//       return res.status(200).json({ message: '不可以推荐自己的id' });
-//     }
-
-//     const user = await User.findOne({ where: { user_id: other_user_id } });
-//     console.log(user);
-
-//     if (!user) {
-//       return res.status(200).json({ message: '不存在此用户' });
-//     }
-
-//     if (user.is_invited) {
-//       return res.status(200).json({ message: '该好友已被推荐' });
-//     }
-
-//     await User.update({ is_invited: true }, { where: { user_id: user_id } });
-//     return res.status(200).json({ message: '推荐成功' });
-    
-//   } catch (err) {
-//     console.error(err);
-//     return res.status(500).json({ message: '未知错误' });
-//   }
-// }
 
 async function inviteFriends(req, res) {
   try {
@@ -90,10 +71,37 @@ async function inviteFriends(req, res) {
       return res.status(200).json({ message: '该好友已被推荐' });
     }
 
-    await Promise.all([
-      User.update({ is_invited: true, balance_amount: Sequelize.literal('balance_amount + 2') }, { where: { user_id } }),
-      User.update({ balance_amount: Sequelize.literal('balance_amount + 2') }, { where: { user_id: other_user_id } })
-    ]);
+    // await Promise.all([
+    //   User.update({ is_invited: true, balance_amount: Sequelize.literal('balance_amount + 2') }, { where: { user_id } }),
+    //   User.update({ balance_amount: Sequelize.literal('balance_amount + 2') }, { where: { user_id: other_user_id } }),
+    //   PaymentRecord.create({user_id: user_id, payment_type_title: "字数计费-邀请好友", payment_amount: "+2.00元", payment_source: `好友id：${other_user_id}`}),
+    //   PaymentRecord.create({user_id: other_user_id, payment_type_title: "字数计费-被邀请好友", payment_amount: "+2.00元", payment_source: `好友id：${user_id}`})
+    // ]);
+
+    await sequelize.transaction(async (t) => {
+      await User.update(
+        { is_invited: true, balance_amount: Sequelize.literal('balance_amount + 2') },
+        { where: { user_id }, transaction: t }
+      );
+      await User.update(
+        { balance_amount: Sequelize.literal('balance_amount + 2') },
+        { where: { user_id: other_user_id }, transaction: t }
+      );
+      await Promise.allSettled([
+        PaymentRecord.create({
+          user_id: user_id,
+          payment_type_title: "字数计费-邀请好友",
+          payment_amount: "+2.00元",
+          payment_source: `好友id：${other_user_id}`,
+        }, { transaction: t }),
+        PaymentRecord.create({
+          user_id: other_user_id,
+          payment_type_title: "字数计费-被邀请好友",
+          payment_amount: "+2.00元",
+          payment_source: `好友id：${user_id}`,
+        }, { transaction: t }),
+      ]);
+    });
 
     return res.status(200).json({ message: '推荐成功' });
 
@@ -116,4 +124,4 @@ async function deleteUser(req, res) {
   }
 }
 
-module.exports = { getGoodsList, getPaymentRecordList, createPaymentRecord, deleteUser, inviteFriends };
+module.exports = { getGoodsList, createGood, getPaymentRecordList, createPaymentRecord, deleteUser, inviteFriends };

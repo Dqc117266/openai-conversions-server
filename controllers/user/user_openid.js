@@ -52,8 +52,9 @@ async function createUserAndRechargeRecord(res, openid, unionid) {
   const is_invited = false;
   const balance_amount = 5;  
   const balance_days = 0;
-  const payment_amount = balance_amount
+  const payment_amount = '5.00元'
   const payment_type_title = '字数计费-新用户试用';
+  const payment_source = ''
 
   await sequelize.transaction(async (t) => {
     //create user

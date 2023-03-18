@@ -4,7 +4,7 @@ const path = require('path');
 let fileName;
 
 
-async function uploadAvator(req, res) {
+async function uploadAvatar(req, res) {
   fileName = `wx_${Date.now()}.jpg`;
   const userId = req.body.userid;
   const openid = req.body.openid; // 获取请求中的 openid
@@ -12,7 +12,7 @@ async function uploadAvator(req, res) {
   // const data = JSON.parse(req);
   console.log('openid ' + openid + ' username ' + username)
 
-  const base64 = req.body.avator
+  const base64 = req.body.avatar
   const savePath = path.join(__dirname, '../../public/images', fileName);
 
   const buffer = Buffer.from(base64, 'base64')
@@ -34,7 +34,6 @@ async function uploadAvator(req, res) {
 
 }
 
-
 async function saveFileAndDelete(res, user_id) {
   const user = await User.findOne({ where: { user_id } }); // 查询是否已存在该用户
   // const user = await User.findByPk(userid);
@@ -42,8 +41,8 @@ async function saveFileAndDelete(res, user_id) {
   if (user) {
     // 如果已存在该用户，则返回已有的用户信息
     try {
-      if (user.avator) {
-        const filePath = path.join(__dirname, '../../public/images', path.basename(user.avator))
+      if (user.avatar) {
+        const filePath = path.join(__dirname, '../../public/images', path.basename(user.avatar))
         fs.unlink(filePath, (err) => {
           if (err) {
             console.error(err);
@@ -51,9 +50,9 @@ async function saveFileAndDelete(res, user_id) {
           console.log('文件已成功删除');
         });
       }
-      const avator = process.env.FILEBASE_URL + fileName;
-      console.log("delete file is = " + user.avator + " curFile " + avator)
-      await user.update({ avator });
+      const avatar = process.env.FILEBASE_URL + fileName;
+      console.log("delete file is = " + user.avatar + " curFile " + avatar)
+      await user.update({ avatar });
       res.status(200).json({ message: 'File upload success' });
     } catch (err) {
       console.error(err);
@@ -65,4 +64,4 @@ async function saveFileAndDelete(res, user_id) {
   }
 }
 
-module.exports = {uploadAvator};
+module.exports = {uploadAvatar};

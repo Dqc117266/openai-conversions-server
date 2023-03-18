@@ -18,13 +18,18 @@ const PaymentRecord = sequelize.define('PaymentRecord', {
       allowNull: false
     },
     payment_amount: {
-      type: DataTypes.DECIMAL(10, 2),
+      type: DataTypes.STRING,
       allowNull: true  
     },
     payment_time: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
+    },
+
+    payment_source: {
+      type: DataTypes.STRING,
+      allowNull: true
     }
 
   }, {
