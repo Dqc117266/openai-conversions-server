@@ -13,7 +13,8 @@ async function getFeatureList(req, res) {
 async function addFeature(req, res) {
     const { feature_name, feature_desc, feature_avatar, feature_openai_body } = req.body;
 
-    Feature.create(feature_name, feature_desc, feature_avatar, feature_openai_body)
+    console.log("name:" + feature_name + " desc:" + feature_desc + " avatar " + feature_avatar + " body " + feature_openai_body);
+    Feature.create({feature_name, feature_desc, feature_avatar, feature_openai_body})
       .then((payRecord) => {
         res.json(payRecord);
       })
@@ -25,4 +26,4 @@ async function addFeature(req, res) {
   
 
 
-module.exports = { getFeatureList };
+module.exports = { getFeatureList, addFeature };

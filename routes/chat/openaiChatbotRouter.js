@@ -6,7 +6,7 @@ const router = express.Router();
 const openaiApiKey = process.env.OPENAI_KEY;
 
 // 创建 WebSocket 服务器
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ server: true });
 
 wss.on('connection', function connection(ws) {
   // 连接成功后，发送欢迎消息
@@ -44,8 +44,11 @@ wss.on('connection', function connection(ws) {
 
 // 客户端发起 WebSocket 连接时，将其升级为 WebSocket 连接
 router.post('/', function(ws, req) {
+  console.log("chatbot post" )
+
   wss.handleUpgrade(req, ws, Buffer.alloc(0), function done(ws) {
     wss.emit('connection', ws, req);
+    console.log("chatbot req: " + req )
   });
 });
 

@@ -2,11 +2,12 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../sequelize');
 
 // 定义模型
-const Feature = sequelize.define('Feature', {
+const Feature = sequelize.define('feature', {
   feature_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    primaryKey: true
+    primaryKey: true,
+    autoIncrement:true
   },
   feature_name: {
     type: DataTypes.STRING,
@@ -16,19 +17,19 @@ const Feature = sequelize.define('Feature', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  feature_avator: {
+  feature_avatar: {
     type: DataTypes.STRING,
     allowNull: false
   },
-  feature_prompt: {
+  feature_openai_body: {
     type: DataTypes.STRING,
     allowNull: false
-  }
-  
+  },
 }, {
-  tableName: 'Feature',
+  tableName: 'feature',
   timestamps: false
 });
 
 // 导出模型
 module.exports = Feature;
+
