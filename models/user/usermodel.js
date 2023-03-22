@@ -33,9 +33,10 @@ const User = sequelize.define('User', {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false
   },
-  balance_days: {
-    type: DataTypes.INTEGER,
-    allowNull: false
+  duration_expiration_date: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
   }
   
 }, {

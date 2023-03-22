@@ -7,15 +7,15 @@ const Chat = sequelize.define('Chat', {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  is_aisend: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false
+  chat_date: {
+    type: DataTypes.DATE,
+    allowNull: true
   },
-  message: {
-    type: DataTypes.STRING,
-    allowNull: false
+  chat_list: {
+    type: DataTypes.JSON,
+    allowNull: true
   }
-  
+
 }, {
   tableName: 'Chat',
   timestamps: false

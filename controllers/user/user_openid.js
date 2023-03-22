@@ -51,8 +51,7 @@ async function createUserAndRechargeRecord(res, openid, unionid) {
   const avator = '';
   const is_invited = false;
   const balance_amount = 5;  
-  const balance_days = 0;
-  const payment_amount = '5.00元'
+  const payment_amount = '+5.00元'
   const payment_type_title = '字数计费-新用户试用';
   const payment_source = ''
 
@@ -60,7 +59,7 @@ async function createUserAndRechargeRecord(res, openid, unionid) {
     //create user
     try {
       let user = await User.create({
-        user_id, openid, unionid, username, avator, is_invited, balance_amount, balance_days
+        user_id, openid, unionid, username, avator, is_invited, balance_amount
       }, {transaction: t});
 
       res.json({user: user, secretKey: process.env.AES_KEY});

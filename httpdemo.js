@@ -30,7 +30,7 @@ app.use(express.static('public'));
 // app.use('/user', usersRouter);
 // app.use(verifySignature)
 app.use('/user', openIdRouter);
-app.use('/chatbot', streamDemo);
+app.use('/chatbot', verifySignature, streamDemo);
 app.use('/', verifySignature, rechargelist);
 app.use('/', verifySignature, featureRouter);
 

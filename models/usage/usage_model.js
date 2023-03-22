@@ -5,15 +5,16 @@ const sequelize = require('../sequelize');
 const Usage = sequelize.define('Usage', {
   usage_id: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    primaryKey: true
+    allowNull: true,
+    primaryKey: true,
+    autoIncrement: true,
   },
   user_id: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
   usage_date: {
-    type: DataTypes.DATE,
+    type: DataTypes.STRING,
     allowNull: false
   },
   usage_amount: {

@@ -6,7 +6,8 @@ const Conversation = sequelize.define('Conversation', {
   conversation_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    primaryKey: true
+    primaryKey: true,
+    autoIncrement: true
   },
   user_id: {
     type: DataTypes.INTEGER,
@@ -30,7 +31,7 @@ const Conversation = sequelize.define('Conversation', {
     allowNull: false
   },
   conversation_openai_body: {
-    type: DataTypes.STRING,
+    type: DataTypes.JSON,
     allowNull: false
   }
   

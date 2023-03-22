@@ -6,25 +6,61 @@ const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 const cache = require('node-cache');
 const User = require('../../models/user/usermodel');
+const Chat = require('../../models/chat/chat_model');
+const Usage = require('../../models/usage/usage_model');
+const sequelize = require('../../models/sequelize');
+
+const moment = require('moment');
+const chatCache = {};
 
 const myCache = new cache({ stdTTL: 60, checkperiod: 120 });
 
-
+async function saveChat(conversation_id, message) {
+  const chatDate = moment().format('YYYY-MM-DD HH:mm');
+  if (!chatCache[conversation_id]) {
+    chatCache[conversation_id] = {
+    chat_date: chatDate,
+    messages: [message]
+    };
+  } else {
+    chatCache[conversation_id].messages.push(message);
+  }
+  // 5分钟后将聊天记录批量保存到数据库中
+  setTimeout(async () => {
+    const chat = await Chat.create({
+      conversation_id,
+      chat_date: chatCache[conversation_id].chat_date,
+      chat_list: chatCache[conversation_id].messages
+    });
+    delete chatCache[conversation_id]; // 保存成功后删除缓存中的聊天记录
+  }, 3 * 60 * 1000);
+}
 // 函数: 从缓存或数据库中获取用户余额
 async function getUserBalance(userId) {
   const balanceKey = `user:${userId}:balance`;
+  const durationExpirationDateKey = `user:${userId}:durationExpirationDate`;
+  
   let balance = myCache.get(balanceKey);
-  if (balance != undefined) {
-    return balance;
+  let durationExpirationDate = myCache.get(durationExpirationDateKey);
+  
+  if (balance === undefined || durationExpirationDate === undefined) {
+    // 如果缓存中不存在这些值，则从数据库中获取它们
+    const user = await User.findOne({ where: { user_id: userId } });
+    if (!user) {
+      throw new Error(`User ${userId} not found`);
+    }
+    if (balance === undefined) {
+      balance = user.balance_amount;
+      myCache.set(balanceKey, balance); // 将从数据库中获取的余额存入缓存
+    }
+    if (durationExpirationDate === undefined) {
+      const datetime = moment(user.duration_expiration_date, 'YYYY-MM-DD HH:mm:ss');
+      durationExpirationDate = Math.max(datetime.valueOf() - Date.now(), 0);
+      myCache.set(durationExpirationDateKey, durationExpirationDate); // 将从数据库中获取的时长计费到期时间存入缓存
+    }
   }
-  // 从数据库中获取用户余额
-  const user = await User.findOne({ where: { user_id: userId } });
-  if (!user) {
-    throw new Error(`User ${userId} not found`);
-  }
-  balance = user.balance_amount;
-  myCache.set(balanceKey, balance); // 将从数据库中获取的值存入缓存
-  return balance;
+  
+  return {balance, durationExpirationDate};  
 }
 
 // 函数: 更新用户余额
@@ -46,6 +82,45 @@ async function updateUserBalance(userId, amount) {
   balance = Math.max(user.balance_amount - amount, 0);
   myCache.set(balanceKey, balance); // 将从数据库中获取的值存入缓存
   await User.update({ balance_amount: balance }, { where: { user_id: userId } }); // 批量更新数据库中用户余额
+}
+
+async function updateUserDailyUsage(userId, amount) {
+  const date = new Date(); // 创建一个新的日期对象
+  const formattedDate = date.toLocaleDateString('zh-CN'); // 格式化日期为 "MM/DD/YYYY"，如果您的系统设置为使用不同的日期格式，则应相应更改本地化值
+
+  const today = new Date().toISOString().slice(0, 10);
+  console.log(" today: " + today + " date " + formattedDate)
+  const usageKey = `user:${userId}:usage`;
+
+  // 查询缓存
+  let usage = myCache.get(usageKey);
+  if (usage != undefined) {
+    usage += amount;
+    myCache.set(usageKey, usage, {ttl: 60 * 60}) // 添加缓存过期时间
+    await sequelize.transaction(async (t) => {
+      // 更新数据库
+      await Usage.update({ usage_amount: usage, usage_wordcount: usage * 2000 }, { where: { user_id: userId, usage_date: today }, transaction: t });
+    })
+    return
+  }
+  // 查询数据库
+  const mUsage = await Usage.findOne({ where: { user_id: userId, usage_date: today } });
+
+  if (mUsage) {
+    // 更新缓存
+    usage = mUsage.usage_amount + amount;
+    myCache.set(usageKey, usage, { ttl: 60 * 60 }); // 添加缓存过期时间
+    await sequelize.transaction(async (t) => {
+      // 更新数据库
+      await Usage.update({ usage_amount: usage, usage_wordcount: usage * 2000 }, { where: { user_id: userId, usage_date: today }, transaction: t });
+    })
+  } else {
+    // 创建新记录
+    // const newUsage = { user_id: userId, usage_date: today, usage_amount: amount, usage_wordcount: amount * 2000 };
+    await Usage.create({ user_id: userId, usage_date: today, usage_amount: amount, usage_wordcount: amount * 2000});
+    // 更新缓存
+    myCache.set(usageKey, amount, { ttl: 60 * 60 }); // 添加缓存过期时间
+  }
 }
 
 amqp.connect('amqp://localhost:5672', (error0, connection) => {
@@ -111,10 +186,13 @@ amqp.connect('amqp://localhost:5672', (error0, connection) => {
           console.log('requestBody:' + requestBody);
           console.log("channel status: " + status + " ")
 
-          const balance = await getUserBalance(userId);
-          console.log("balance " + balance)
+          const { balance, durationExpirationDate } = await getUserBalance(userId);
+          console.log("balance " + balance + " durationExpirationDate " + durationExpirationDate)
 
-          if (balance <= 0) {
+          // 计算剩余时间
+          // const remainingTime = ;
+
+          if (durationExpirationDate <= 0 && balance <= 0) {
             client.send(JSON.stringify({data: 'insufficientBalance' }));
             return
           }
@@ -151,12 +229,17 @@ amqp.connect('amqp://localhost:5672', (error0, connection) => {
             });
           } else if (status === 'SET_TLEMENT') {
 
+            if (durationExpirationDate > 0) {
+              return;
+            }
             const wordLength = parseFloat(requestBody.word_length);
             const useAment = wordLength / 2000;
+
             await updateUserBalance(userId, useAment);
+            await updateUserDailyUsage(userId, useAment);
           }
         } catch (e) {
-          console.log(" JSON.parse error " + e)
+          console.log(" error " + e)
         }
       }
     }, {
@@ -169,7 +252,16 @@ amqp.connect('amqp://localhost:5672', (error0, connection) => {
 router.post('/', (req, res) => {
   console.log("openchat")
   res.json({message: "CONTENT_OK"});
+});
 
+router.post('/saveChatList', (req, res) => {
+  const conversationId = req.body.conversation_id;
+  const messages = req.body.messages; // 解析 JSON 字符串为 JavaScript 对象数组
+  for (let i = 0; i < messages.length; i++) {
+    saveChat(conversationId, messages[i]); // 传递消息内容给 saveChat 方法
+    console.log('messages[i] : ' + messages[i].role + ' content: ' + messages[i].content);
+  }
+  res.json({message: "CONTENT_OK"});
 });
 
 module.exports = router;
