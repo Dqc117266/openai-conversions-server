@@ -10,6 +10,7 @@ const Chat = require('../../models/chat/chat_model');
 const Usage = require('../../models/usage/usage_model');
 const sequelize = require('../../models/sequelize');
 
+const timezone = require('moment-timezone');
 const moment = require('moment');
 const chatCache = {};
 
@@ -55,12 +56,19 @@ async function getUserBalance(userId) {
     }
     if (durationExpirationDate === undefined) {
       const datetime = moment(user.duration_expiration_date, 'YYYY-MM-DD HH:mm:ss');
-      durationExpirationDate = Math.max(datetime.valueOf() - Date.now(), 0);
+      durationExpirationDate = Math.max(datetime.valueOf() - getDateNow(), 0);
       myCache.set(durationExpirationDateKey, durationExpirationDate); // 将从数据库中获取的时长计费到期时间存入缓存
     }
   }
   
   return {balance, durationExpirationDate};  
+}
+
+function getDateNow() {
+  const currentTime = moment().tz('Asia/Shanghai');
+  const timestamp = currentTime.valueOf();
+  console.log(timestamp);
+  return timestamp;
 }
 
 // 函数: 更新用户余额
@@ -85,11 +93,11 @@ async function updateUserBalance(userId, amount) {
 }
 
 async function updateUserDailyUsage(userId, amount) {
-  const date = new Date(); // 创建一个新的日期对象
-  const formattedDate = date.toLocaleDateString('zh-CN'); // 格式化日期为 "MM/DD/YYYY"，如果您的系统设置为使用不同的日期格式，则应相应更改本地化值
+  const currentTime = moment().tz('Asia/Shanghai');
+  // 格式化时间为 MM-DD-YYYY
+  const formattedDate = currentTime.format('YYYY-MM-DD');
+  console.log(" date " + formattedDate)
 
-  const today = new Date().toISOString().slice(0, 10);
-  console.log(" today: " + today + " date " + formattedDate)
   const usageKey = `user:${userId}:usage`;
 
   // 查询缓存
@@ -99,7 +107,7 @@ async function updateUserDailyUsage(userId, amount) {
     myCache.set(usageKey, usage, {ttl: 60 * 60}) // 添加缓存过期时间
     await sequelize.transaction(async (t) => {
       // 更新数据库
-      await Usage.update({ usage_amount: usage, usage_wordcount: usage * 2000 }, { where: { user_id: userId, usage_date: today }, transaction: t });
+      await Usage.update({ usage_amount: usage, usage_wordcount: usage * 5000 }, { where: { user_id: userId, usage_date: today }, transaction: t });
     })
     return
   }
@@ -112,12 +120,12 @@ async function updateUserDailyUsage(userId, amount) {
     myCache.set(usageKey, usage, { ttl: 60 * 60 }); // 添加缓存过期时间
     await sequelize.transaction(async (t) => {
       // 更新数据库
-      await Usage.update({ usage_amount: usage, usage_wordcount: usage * 2000 }, { where: { user_id: userId, usage_date: today }, transaction: t });
+      await Usage.update({ usage_amount: usage, usage_wordcount: usage * 5000 }, { where: { user_id: userId, usage_date: today }, transaction: t });
     })
   } else {
     // 创建新记录
     // const newUsage = { user_id: userId, usage_date: today, usage_amount: amount, usage_wordcount: amount * 2000 };
-    await Usage.create({ user_id: userId, usage_date: today, usage_amount: amount, usage_wordcount: amount * 2000});
+    await Usage.create({ user_id: userId, usage_date: formattedDate, usage_amount: amount, usage_wordcount: amount * 5000});
     // 更新缓存
     myCache.set(usageKey, amount, { ttl: 60 * 60 }); // 添加缓存过期时间
   }
@@ -233,7 +241,7 @@ amqp.connect('amqp://localhost:5672', (error0, connection) => {
               return;
             }
             const wordLength = parseFloat(requestBody.word_length);
-            const useAment = wordLength / 2000;
+            const useAment = wordLength / 5000;
 
             await updateUserBalance(userId, useAment);
             await updateUserDailyUsage(userId, useAment);

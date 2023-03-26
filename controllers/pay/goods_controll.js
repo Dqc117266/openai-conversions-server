@@ -27,7 +27,8 @@ async function createGood(req, res) {
 
 async function getPaymentRecordList(req, res) {//查询所有付款记录
   try {
-    const payRecord = await PaymentRecord.findAll();
+    const {user_id} = req.body;
+    const payRecord = await PaymentRecord.findAll({where:{user_id: parseInt(user_id)}});
     res.json(payRecord);
   } catch (err) {
     console.error(err);
@@ -52,8 +53,8 @@ async function inviteFriends(req, res) {
     const { user_id, other_user_id } = req.body;
     console.log(`userId ${user_id} otherUserId ${other_user_id}`);
 
-    if (user_id === other_user_id) {
-      return res.status(200).json({ message: '不可以推荐自己的id' });
+    if (user_id === parseInt(other_user_id)) {
+      return res.status(200).json({type: 101, message: '不可以推荐自己的id' });
     }
 
     const [user, otherUser] = await Promise.all([
@@ -62,13 +63,13 @@ async function inviteFriends(req, res) {
     ]);
 
     if (!otherUser) {
-      return res.status(200).json({ message: '不存在此用户' });
+      return res.status(200).json({type: 102, message: '不存在此用户' });
     }
 
     console.log("is_invited: " + user.is_invited);
 
     if (user.is_invited) {
-      return res.status(200).json({ message: '该好友已被推荐' });
+      return res.status(200).json({type: 103, message: '该好友已被推荐' });
     }
 
     // await Promise.all([
@@ -90,24 +91,24 @@ async function inviteFriends(req, res) {
       await Promise.allSettled([
         PaymentRecord.create({
           user_id: user_id,
-          payment_type_title: "字数计费-邀请好友",
+          payment_type_title: "字数充值-邀请好友",
           payment_amount: "+2.00元",
           payment_source: `好友id：${other_user_id}`,
         }, { transaction: t }),
         PaymentRecord.create({
           user_id: other_user_id,
-          payment_type_title: "字数计费-被邀请好友",
+          payment_type_title: "字数充值-被邀请好友",
           payment_amount: "+2.00元",
           payment_source: `好友id：${user_id}`,
         }, { transaction: t }),
       ]);
     });
 
-    return res.status(200).json({ message: '推荐成功' });
+    return res.status(200).json({type: 100, message: '推荐成功' });
 
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: '未知错误' });
+    return res.status(500).json({type: 104, message: '未知错误' });
   }
 }
 

@@ -1,13 +1,14 @@
 const express = require('express');
 const bodyParser = require('body-parser')
 const sequelize = require('./models/sequelize');
-const usersRouter = require('./routes/user_routes');
+const usageRouter = require('./routes/usage/usage_route');
 const openIdRouter = require('./routes/openid_routes');
 const rechargelist = require('./routes/pay/rechargelist_route');
 const featureRouter = require('./routes/feature/feature_route');
 const verifySignature = require('./utils/authenticate-request-util')
 // const openaidome = require('./utils/openaiDemo')
 const streamDemo = require('./routes/chat/streamDemo')
+
 // const openaiChatbotRouter = require('./routes/chat/openaiChatbotRouter');
 
 
@@ -27,9 +28,9 @@ app.use(express.static('public'));
 // openaidome();
 
 // 注册路由
-// app.use('/user', usersRouter);
 // app.use(verifySignature)
 app.use('/user', openIdRouter);
+app.use('/usage', verifySignature, usageRouter);
 app.use('/chatbot', verifySignature, streamDemo);
 app.use('/', verifySignature, rechargelist);
 app.use('/', verifySignature, featureRouter);
