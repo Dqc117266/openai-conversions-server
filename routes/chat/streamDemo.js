@@ -8,6 +8,7 @@ const cache = require('node-cache');
 const User = require('../../models/user/usermodel');
 const Chat = require('../../models/chat/chat_model');
 const Usage = require('../../models/usage/usage_model');
+const Conversation = require('../../models/conversation/conversation_model');
 const sequelize = require('../../models/sequelize');
 
 const timezone = require('moment-timezone');
@@ -16,25 +17,38 @@ const chatCache = {};
 
 const myCache = new cache({ stdTTL: 60, checkperiod: 120 });
 
-async function saveChat(conversation_id, message) {
-  const chatDate = moment().format('YYYY-MM-DD HH:mm');
-  if (!chatCache[conversation_id]) {
-    chatCache[conversation_id] = {
-    chat_date: chatDate,
-    messages: [message]
-    };
-  } else {
-    chatCache[conversation_id].messages.push(message);
+async function changeConversationDesc(conversation_id, messages) {
+  try {
+    if (conversation_id && messages && messages.length > 0) {
+      const chatDate = moment().format('YYYY-MM-DD HH:mm');
+      const lastMsg = messages[messages.length - 1].content;
+      let msg = lastMsg.length <= 17 ? lastMsg : lastMsg.substring(0, 17) + '...';
+      await Conversation.update({ updated_at: chatDate, conversation_content: msg}, { where: { conversation_id } });
+      await Chat.create({
+        conversation_id,
+        chat_date: chatDate,
+        chat_list: messages
+      });
+    }
+  } catch (e) {
+    console.log(" saveChat error ", e)
   }
-  // 5分钟后将聊天记录批量保存到数据库中
-  setTimeout(async () => {
-    const chat = await Chat.create({
-      conversation_id,
-      chat_date: chatCache[conversation_id].chat_date,
-      chat_list: chatCache[conversation_id].messages
-    });
-    delete chatCache[conversation_id]; // 保存成功后删除缓存中的聊天记录
-  }, 3 * 60 * 1000);
+}
+
+async function saveChat(conversation_id, messages) {
+  try {
+    changeConversationDesc(conversation_id, messages);
+    // if (conversation_id && message) {
+    //   const chatDate = moment().format('YYYY-MM-DD HH:mm');
+    //   await Chat.create({
+    //     conversation_id,
+    //     chat_date: chatDate,
+    //     chat_list: message
+    //   });
+    // }
+  } catch (e) {
+    console.log(" saveChat erroe ", e)
+  }  
 }
 // 函数: 从缓存或数据库中获取用户余额
 async function getUserBalance(userId) {
@@ -103,24 +117,27 @@ async function updateUserDailyUsage(userId, amount) {
   // 查询缓存
   let usage = myCache.get(usageKey);
   if (usage != undefined) {
-    usage += amount;
+    usage = (parseFloat(usage) + amount).toFixed(4);
+    console.log("查询缓存: usage: " + usage);
     myCache.set(usageKey, usage, {ttl: 60 * 60}) // 添加缓存过期时间
     await sequelize.transaction(async (t) => {
       // 更新数据库
-      await Usage.update({ usage_amount: usage, usage_wordcount: usage * 5000 }, { where: { user_id: userId, usage_date: today }, transaction: t });
+      await Usage.update({ usage_amount: usage, usage_wordcount: usage * 5000 }, { where: { user_id: userId, usage_date: formattedDate }, transaction: t });
     })
     return
   }
   // 查询数据库
-  const mUsage = await Usage.findOne({ where: { user_id: userId, usage_date: today } });
+  const mUsage = await Usage.findOne({ where: { user_id: userId, usage_date: formattedDate } });
 
   if (mUsage) {
     // 更新缓存
-    usage = mUsage.usage_amount + amount;
+    usage = (parseFloat(mUsage.usage_amount) + amount).toFixed(4);
+    console.log("mUsage: usage: " + usage + " mUsage.usage_amount " + mUsage.usage_amount + " amount " + amount)
+
     myCache.set(usageKey, usage, { ttl: 60 * 60 }); // 添加缓存过期时间
     await sequelize.transaction(async (t) => {
       // 更新数据库
-      await Usage.update({ usage_amount: usage, usage_wordcount: usage * 5000 }, { where: { user_id: userId, usage_date: today }, transaction: t });
+      await Usage.update({ usage_amount: usage, usage_wordcount: usage * 5000 }, { where: { user_id: userId, usage_date: formattedDate }, transaction: t });
     })
   } else {
     // 创建新记录
@@ -159,9 +176,7 @@ amqp.connect('amqp://localhost:5672', (error0, connection) => {
         console.log('WebSocket connection');
         const clientId = uuidv4();
         console.log(clientId);
-
         clients.set(clientId, ws);
-  
         // 监听消息
         ws.on('message', (message) => {
           console.log(`${clientId} Received message: ` + message);
@@ -172,6 +187,7 @@ amqp.connect('amqp://localhost:5672', (error0, connection) => {
 
         ws.on('close', () => {
           clients.delete(clientId);
+          console.log('closed clientId' + clientId);
         });
 
       });
@@ -190,9 +206,11 @@ amqp.connect('amqp://localhost:5672', (error0, connection) => {
           const status = json.status;
           const requestBody = json.requestBody;
           const userId = json.userid;
+          const baseUrl = json.baseUrl;
 
+          console.log("channel baseUrl: " + baseUrl);
           console.log('requestBody:' + requestBody);
-          console.log("channel status: " + status + " ")
+          console.log("channel status: " + status + " ");
 
           const { balance, durationExpirationDate } = await getUserBalance(userId);
           console.log("balance " + balance + " durationExpirationDate " + durationExpirationDate)
@@ -207,7 +225,7 @@ amqp.connect('amqp://localhost:5672', (error0, connection) => {
   
           if (status === 'CAN_SEND_MESSAGE') {
             const instance = axios.create({
-              baseURL: 'https://api.openai.com/v1/chat/',
+              baseURL: baseUrl,
               responseType: 'stream',
               headers: {
                 'Content-Type': 'application/json',
@@ -216,7 +234,7 @@ amqp.connect('amqp://localhost:5672', (error0, connection) => {
               timeout: 15 * 1000,
             });
     
-            const request = instance.post('completions', requestBody);
+            const request = instance.post('', requestBody);
     
             request.then(response => {
               const stream = response.data;
@@ -235,6 +253,10 @@ amqp.connect('amqp://localhost:5672', (error0, connection) => {
               client.send(JSON.stringify({data: 'networkerror' }));
               console.log(error);
             });
+
+            client.on('close', () => {
+              console.log('close request.abort');
+            });
           } else if (status === 'SET_TLEMENT') {
 
             if (durationExpirationDate > 0) {
@@ -245,6 +267,7 @@ amqp.connect('amqp://localhost:5672', (error0, connection) => {
 
             await updateUserBalance(userId, useAment);
             await updateUserDailyUsage(userId, useAment);
+            await saveChat(requestBody.conversation_id, requestBody.messages);
           }
         } catch (e) {
           console.log(" error " + e)

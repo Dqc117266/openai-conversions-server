@@ -21,6 +21,10 @@ const Feature = sequelize.define('feature', {
     type: DataTypes.STRING,
     allowNull: false
   },
+  feature_openai_url: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
   feature_openai_body: {
     type: DataTypes.STRING,
     allowNull: false

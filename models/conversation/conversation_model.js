@@ -30,7 +30,7 @@ const Conversation = sequelize.define('Conversation', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  conversation_openai_body: {
+  conversation_feature_info: {
     type: DataTypes.JSON,
     allowNull: false
   }

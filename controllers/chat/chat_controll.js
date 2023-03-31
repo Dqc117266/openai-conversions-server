@@ -2,7 +2,7 @@ const Chat = require('../../models/chat/chat_model'); // 引入用户模型
 
 async function getChatList(req, res) {
     try {
-        const { conversation_id } = req.params;
+        const { conversation_id } = req.body;
         const chatList = await Chat.findAll({
             where: {
                 conversation_id

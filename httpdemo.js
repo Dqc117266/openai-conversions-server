@@ -5,6 +5,8 @@ const usageRouter = require('./routes/usage/usage_route');
 const openIdRouter = require('./routes/openid_routes');
 const rechargelist = require('./routes/pay/rechargelist_route');
 const featureRouter = require('./routes/feature/feature_route');
+const conversationRoute = require('./routes/conversation/conversation_route');
+const chatRoute = require('./routes/chat/chat_route');
 const verifySignature = require('./utils/authenticate-request-util')
 // const openaidome = require('./utils/openaiDemo')
 const streamDemo = require('./routes/chat/streamDemo')
@@ -32,8 +34,10 @@ app.use(express.static('public'));
 app.use('/user', openIdRouter);
 app.use('/usage', verifySignature, usageRouter);
 app.use('/chatbot', verifySignature, streamDemo);
+app.use('/', verifySignature, conversationRoute);
 app.use('/', verifySignature, rechargelist);
 app.use('/', verifySignature, featureRouter);
+app.use('/', verifySignature, chatRoute);
 
 // 同步模型到数据库
 sequelize.sync().then(() => {

@@ -28,11 +28,24 @@ async function createGood(req, res) {
 async function getPaymentRecordList(req, res) {//查询所有付款记录
   try {
     const {user_id} = req.body;
-    const payRecord = await PaymentRecord.findAll({where:{user_id: parseInt(user_id)}});
+    const payRecord = await PaymentRecord.findAll({where:{user_id: parseInt(user_id)}, order: [['payment_time', 'DESC']]});
     res.json(payRecord);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: '查询所有付款记录失败' });
+  }
+}
+
+async function deletePaymentRecordItem(req, res) {//查询所有付款记录
+  try {
+    const {user_id, payment_record_id} = req.body;
+
+    const record = await PaymentRecord.findByPk(payment_record_id); // 查找 id 为 1 的记录
+    await record.destroy(); // 删除记录
+    res.status(204).end(); // 返回成功的响应
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: '删除记录失败' });
   }
 }
 
@@ -69,7 +82,7 @@ async function inviteFriends(req, res) {
     console.log("is_invited: " + user.is_invited);
 
     if (user.is_invited) {
-      return res.status(200).json({type: 103, message: '该好友已被推荐' });
+      return res.status(200).json({type: 103, message: '您已推荐过好友' });
     }
 
     // await Promise.all([
@@ -125,4 +138,4 @@ async function deleteUser(req, res) {
   }
 }
 
-module.exports = { getGoodsList, createGood, getPaymentRecordList, createPaymentRecord, deleteUser, inviteFriends };
+module.exports = { getGoodsList, createGood, getPaymentRecordList, createPaymentRecord, deleteUser, inviteFriends, deletePaymentRecordItem };
