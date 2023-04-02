@@ -123,7 +123,11 @@ async function updateUserDailyUsage(userId, amount) {
     await sequelize.transaction(async (t) => {
       // 更新数据库
       await Usage.update({ usage_amount: usage, usage_wordcount: usage * 5000 }, { where: { user_id: userId, usage_date: formattedDate }, transaction: t });
-    })
+    }).then(() => {
+      console.log('事务提交成功');
+    }).catch((err) => {
+      console.log('事务提交失败', err);
+    });
     return
   }
   // 查询数据库
@@ -255,7 +259,7 @@ amqp.connect('amqp://localhost:5672', (error0, connection) => {
             });
 
             client.on('close', () => {
-              console.log('close request.abort');
+              console.log('close client');
             });
           } else if (status === 'SET_TLEMENT') {
 
