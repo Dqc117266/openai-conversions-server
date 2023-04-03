@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "cross-env APP_ID=wxab73b2534d535d32 APP_SECRET=bcd4c403b280eabe6fc6aaaf6cb26cc0 OPENAI_KEY=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 AES_KEY=f2de4dcbfafd8fc9 DATEBASE_NAME=conversion_database DB_USER=root DB_PASS=dqc1172662142. DB_HOST=127.0.0.1 DB_PORT=3306 DB_DIALECT=mysql PORT=3000 SERVER_KEY=/etc/ssl/192.168.50.224.key SERVER_LCT=/etc/ssl/192.168.50.224.crt FILEBASE_URL=http://aichat.wisdomanswerer.top/images/ node httpdemo.js"
+    "start": "cross-env APP_ID=wxab73b2534d535d32 APP_SECRET=bcd4c403b280eabe6fc6aaaf6cb26cc0 OPENAI_KEY=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 AES_KEY=f2de4dcbfafd8fc9 DATEBASE_NAME=conversion_database DB_USER=username DB_PASS=dqc1172662142. DB_HOST=127.0.0.1 DB_PORT=3306 DB_DIALECT=mysql PORT=3000 SERVER_KEY=/etc/ssl/192.168.50.224.key SERVER_LCT=/etc/ssl/192.168.50.224.crt FILEBASE_URL=http://aichat.wisdomanswerer.top/images/ node httpdemo.js"
   },
   "repository": {
     "type": "git",
