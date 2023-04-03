@@ -39,6 +39,11 @@ app.use('/', verifySignature, rechargelist);
 app.use('/', verifySignature, featureRouter);
 app.use('/', verifySignature, chatRoute);
 
+
+
+console.log("sequelize：", " process.env.DATEBASE_NAME " + process.env.DATEBASE_NAME 
++ " process.env.DB_USER " + process.env.DB_USER + " process.env.DB_PASS " + process.env.DB_PASS + " process.env.DB_HOST " + process.env.DB_HOST 
++ " process.env.DB_PORT " + process.env.DB_PORT + " process.env.DB_DIALECT " + process.env.DB_DIALECT);
 // 同步模型到数据库
 sequelize.sync().then(() => {
   console.log('所有模型已成功同步到数据库。');
