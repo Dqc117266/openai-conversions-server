@@ -36,8 +36,8 @@ app.use('/usage', verifySignature, usageRouter);
 app.use('/chatbot', verifySignature, streamDemo);
 app.use('/', verifySignature, conversationRoute);
 app.use('/', verifySignature, rechargelist);
-app.use('/', verifySignature, featureRouter);
-app.use('/', verifySignature, chatRoute);
+app.use('/', featureRouter);
+app.use('/', chatRoute);
 
 
 
