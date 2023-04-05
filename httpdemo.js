@@ -32,12 +32,12 @@ app.use(express.static('public'));
 // 注册路由
 // app.use(verifySignature)
 app.use('/user', openIdRouter);
+app.use('/', featureRouter);
+app.use('/', chatRoute);
 app.use('/usage', verifySignature, usageRouter);
 app.use('/chatbot', verifySignature, streamDemo);
 app.use('/', verifySignature, conversationRoute);
 app.use('/', verifySignature, rechargelist);
-app.use('/', featureRouter);
-app.use('/', chatRoute);
 
 
 
